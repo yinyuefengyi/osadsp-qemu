@@ -35,4 +35,4 @@ util-obj-y += log.o
 util-obj-y += qdist.o
 util-obj-y += qht.o
 util-obj-y += range.o
-util-obj-y += qemu-io-bridge.o
+util-obj-y += qemu-io-bridge.o qemu-reg-log.o
