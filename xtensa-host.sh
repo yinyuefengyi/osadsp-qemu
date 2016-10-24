@@ -5,6 +5,10 @@ then
   exit
 fi
 
+# clear out old wav debug files
+rm -fr /tmp/ssp*.wav
+rm -fr /tmp/dmac*.wav
+
 case $1 in
 *byt)
  CPU="baytrail"
