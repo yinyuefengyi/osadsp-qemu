@@ -267,6 +267,11 @@ int qemu_io_register_shm(const char *rname, int region, size_t size, void **addr
     if (_iob.shm[region].fd)
         return -EBUSY;
 
+    if (rname == NULL) {
+        fprintf(stderr, "error: no bridge name for region %d\n", region);
+        return -EINVAL;
+    }
+
     name = _iob.shm[region].name;
     sprintf(name, "qemu-bridge-%s", rname);
 
