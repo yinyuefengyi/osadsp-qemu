@@ -91,7 +91,7 @@ static void ssp_write(void *opaque, hwaddr addr,
                     ssp->tx.file_name, -errno);
                 return;
             } else
-                printf("%s opened %s for playback\n",
+                fprintf(stdout, "%s opened %s for playback\n",
                     ssp->name, ssp->tx.file_name);
 
             ssp->tx.total_frames = 0;
@@ -99,7 +99,7 @@ static void ssp_write(void *opaque, hwaddr addr,
 
         /* close file if playback has finished */
         if (clear & SSCR1_TSRE) {
-            printf("%s closed %s for playback at %d frames\n",
+            fprintf(stdout, "%s closed %s for playback at %d frames\n",
                 ssp->name,
                 ssp->tx.file_name, ssp->tx.total_frames);
             close(ssp->tx.fd);
@@ -121,7 +121,7 @@ static void ssp_write(void *opaque, hwaddr addr,
                     ssp->rx.file_name, -errno);
                 return;
             } else
-                printf("%s opened %s for capture\n",
+                fprintf(stdout, "%s opened %s for capture\n",
                     ssp->name, ssp->rx.file_name);
 
             ssp->rx.total_frames = 0;
@@ -129,8 +129,8 @@ static void ssp_write(void *opaque, hwaddr addr,
 
         /* close file if capture has finished */
         if (clear & SSCR1_RSRE) {
-            printf("%s closed %s for capture at %d frames\n", ssp->name,
-                ssp->rx.file_name, ssp->rx.total_frames);
+            fprintf(stdout, "%s closed %s for capture at %d frames\n",
+                ssp->name, ssp->rx.file_name, ssp->rx.total_frames);
             close(ssp->rx.fd);
             ssp->rx.fd = 0;
         }
