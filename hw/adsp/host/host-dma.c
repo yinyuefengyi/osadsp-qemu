@@ -135,20 +135,34 @@ void adsp_host_do_dma(struct adsp_host *adsp, struct qemu_io_msg *msg)
 {
     struct qemu_io_msg_dma32 *dma_msg = (struct qemu_io_msg_dma32 *)msg;
 
+    /* direction is wrt the caller processor */
     switch (dma_msg->hdr.msg) {
     case QEMU_IO_DMA_REQ_NEW:
         if (dma_msg->direction == QEMU_IO_DMA_DIR_READ)
-            dma_M2M_create_read_shm(adsp, msg);
-        else
             dma_M2M_create_write_shm(adsp, msg);
+        else
+            dma_M2M_create_read_shm(adsp, msg);
         break;
     case QEMU_IO_DMA_REQ_COMPLETE:
         if (dma_msg->direction == QEMU_IO_DMA_DIR_READ)
-            dma_M2M_destroy_read_shm(adsp, msg);
-        else
             dma_M2M_destroy_write_shm(adsp, msg);
+        else
+            dma_M2M_destroy_read_shm(adsp, msg);
         break;
     default:
+        fprintf(stderr, "error: invalid direction\n");
         break;
     }
+}
+
+void adsp_host_init(struct adsp_host *adsp, const char *name)
+{
+   int i, j;
+
+   for (i = 0; i < ADSP_MAX_GP_DMAC; i++) {
+       for (j = 0; j < 8; j++) {
+           sprintf(adsp->dma_shm_buffer[i][j].name, "%s-%d-%d", name, i, j);
+           adsp->dma_shm_buffer[i][j].chan = j;
+       }
+   }
 }

@@ -157,6 +157,9 @@ struct adsp_log;
 #define DWDMA_HOST_DMAC_BASE(x)         \
     (DWDMA_HOST_PCI_BASE + x * DWDMA_HOST_DMAC_SIZE)
 
+/* Max transfer size - TODO check this value */
+#define DW_DMA_MAX_TFR_WORDS    (16 * 1024)
+
 /* DMA descriptor used by HW version 2 */
 struct dw_lli2 {
     uint32_t sar;
@@ -175,9 +178,10 @@ struct dma_chan {
 
     /* buffer */
     uint32_t bytes;
-    void *ptr;
+    void *ptr;      /* SHM buffer */
     void *base;
-    uint32_t tbytes;
+    uint32_t total_bytes;
+    uint32_t *buffer;   /* local buffer */
 
     /* endpoint */
     struct qemu_io_msg_dma32 dma_msg;

@@ -139,6 +139,7 @@ void adsp_byt_host_init(struct adsp_host *adsp, const char *name)
     adsp_byt_init_pci(adsp);
     adsp_byt_init_shim(adsp, name);
     adsp_host_init_mbox(adsp, name);
+    adsp_host_init(adsp, "dmac");
 
     /* initialise bridge to x86 host driver */
     qemu_io_register_parent(name, &byt_bridge_cb, (void*)adsp);

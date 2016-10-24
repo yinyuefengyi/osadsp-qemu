@@ -214,7 +214,10 @@ static void dw_dmac_init(struct dw_host *dw, int id)
         dmac->dma_chan[j].fd = 0;
         dmac->dma_chan[j].chan = j;
         dmac->dma_chan[j].file_idx = 0;
-        sprintf(dmac->dma_chan[j].thread_name, "dmac:%d.%d", id, j);
+        sprintf(dmac->dma_chan[j].thread_name, "dmac-%d-%d", id, j);
+
+        /* local buffer */
+        dmac->dma_chan[j].buffer = g_malloc(DW_DMA_MAX_TFR_WORDS);
     }
 }
 

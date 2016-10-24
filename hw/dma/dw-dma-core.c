@@ -206,32 +206,32 @@ static int dma_M2P_copy_burst(struct dma_chan *dma_chan)
     struct adsp_ssp *ssp = ssp_get_port(dma_chan->ssp);
     uint32_t chan = dma_chan->chan;
     hwaddr burst_size;
-    uint32_t buffer[0x1000];
     hwaddr size, sar;
 
     sar = dmac->io[DW_SAR(chan) >> 2];
     size = dmac->io[DW_CTRL_HIGH(chan) >> 2] & DW_CTLH_BLOCK_TS_MASK;
     burst_size = size / 2;
 
-    /* copy burst from SAR to DAR */
-    cpu_physical_memory_read(sar, buffer, burst_size);
+    /* copy burst from channel to file buffer */
+    cpu_physical_memory_read(sar, dma_chan->buffer, burst_size);
 
-    /* copy buffer to files */
+    /* copy buffer to DMA files */
     if (dma_chan->fd > 0) {
-        if (write(dma_chan->fd, buffer, burst_size) != burst_size)
+        if (write(dma_chan->fd, dma_chan->buffer, burst_size) != burst_size)
             fprintf(stderr, "error: writing to DMAC file %d\n", -errno);
     }
 
+    /* copy buffer to SSP out */
     if (ssp->tx.fd > 0) {
-        if (write(ssp->tx.fd, buffer, burst_size) != burst_size)
-            fprintf(stderr, "error: writing to SSP%d file %d\n", dma_chan->ssp, -errno);
+        if (write(ssp->tx.fd, dma_chan->buffer, burst_size) != burst_size)
+            fprintf(stderr, "error: writing to SSP%d file %d\n",
+                dma_chan->ssp, -errno);
     }
 
     /* update SAR, DAR and bytes copied */
     dmac->io[DW_SAR(chan) >> 2] += burst_size;
-    dma_chan->ptr += burst_size;
     dma_chan->bytes += burst_size;
-    dma_chan->tbytes += burst_size;
+    dma_chan->total_bytes += burst_size;
 
     /* block complete ? then send IRQ */
     if (dma_chan->bytes >= size || dma_chan->stop) {
@@ -253,7 +253,7 @@ static int dma_M2P_copy_burst(struct dma_chan *dma_chan)
                 "dma: %d:%d: completed SAR 0x%lx DAR 0x%lx size 0x%x total bytes 0x%x\n",
                 dmac->id, chan, sar, dmac->io[DW_DAR(chan) >> 2],
                 dmac->io[DW_CTRL_HIGH(chan) >> 2] & DW_CTLH_BLOCK_TS_MASK,
-                dma_chan->tbytes);
+                dma_chan->total_bytes);
 
             /* start next block */
             return 1;
@@ -282,26 +282,31 @@ static int dma_P2M_copy_burst(struct dma_chan *dma_chan)
     uint32_t chan = dma_chan->chan;
     hwaddr burst_size;
     hwaddr size, dar;
-    uint32_t buffer[0x1000];
 
     size = dmac->io[DW_CTRL_HIGH(chan) >> 2] & DW_CTLH_BLOCK_TS_MASK;
     burst_size = size / 2;
     dar = dmac->io[DW_DAR(chan) >> 2];
 
-    /* read in data from SSP file */
+    /* read data from SSP file */
     if (ssp->rx.fd > 0) {
-        if (write(ssp->rx.fd, buffer, burst_size) != burst_size)
-            fprintf(stderr, "error: reading from SSP%d file %d\n", dma_chan->ssp, -errno);
+        if (read(ssp->rx.fd, dma_chan->buffer, burst_size) != burst_size)
+            fprintf(stderr, "error: reading from SSP%d file %d\n",
+                dma_chan->ssp, -errno);
     }
 
-    /* copy burst from SAR to DAR */
-    cpu_physical_memory_read(dar, buffer, burst_size);
+    /* copy buffer to DMA files */
+    if (dma_chan->fd > 0) {
+        if (write(dma_chan->fd, dma_chan->buffer, burst_size) != burst_size)
+            fprintf(stderr, "error: writing to DMAC file %d\n", -errno);
+    }
+
+    /* copy burst from file to DAR */
+    cpu_physical_memory_write(dar, dma_chan->buffer, burst_size);
 
     /* update SAR, DAR and bytes copied */
     dmac->io[DW_DAR(chan) >> 2] += burst_size;
-    dma_chan->ptr += burst_size;
     dma_chan->bytes += burst_size;
-    dma_chan->tbytes += burst_size;
+    dma_chan->total_bytes += burst_size;
 
     /* block complete ? then send IRQ */
     if (dma_chan->bytes >= size || dma_chan->stop) {
@@ -323,7 +328,7 @@ static int dma_P2M_copy_burst(struct dma_chan *dma_chan)
                 "dma: %d:%d: completed SAR 0x%lx DAR 0x%lx size 0x%x total bytes 0x%x\n",
                 dmac->id, chan, dmac->io[DW_SAR(chan) >> 2], dar,
                 dmac->io[DW_CTRL_HIGH(chan) >> 2] & DW_CTLH_BLOCK_TS_MASK,
-                dma_chan->tbytes);
+                dma_chan->total_bytes);
 
             /* start next block */
             return 1;
@@ -364,7 +369,7 @@ static int dma_M2M_read_host_burst(struct dma_chan *dma_chan)
 
     dma_chan->ptr += burst_size;
     dma_chan->bytes += burst_size;
-    dma_chan->tbytes += burst_size;
+    dma_chan->total_bytes += burst_size;
 
     if (dma_chan->fd > 0) {
         if (write(dma_chan->fd, dma_chan->ptr, burst_size) != burst_size)
@@ -392,7 +397,7 @@ static int dma_M2M_read_host_burst(struct dma_chan *dma_chan)
                 "dma: %d:%d: completed SAR 0x%x DAR 0x%x size 0x%x total bytes 0x%x\n",
                 dmac->id, chan, dmac->io[DW_SAR(chan) >> 2], dar,
                 dmac->io[DW_CTRL_HIGH(chan) >> 2] & DW_CTLH_BLOCK_TS_MASK,
-                dma_chan->tbytes);
+                dma_chan->total_bytes);
 
             return 1;
         } else {
@@ -431,7 +436,7 @@ static int dma_M2M_write_host_burst(struct dma_chan *dma_chan)
     dmac->io[DW_SAR(chan) >> 2] += burst_size;
     dma_chan->ptr += burst_size;
     dma_chan->bytes += burst_size;
-    dma_chan->tbytes += burst_size;
+    dma_chan->total_bytes += burst_size;
 
     /* block complete ? then send IRQ */
     if (dma_chan->bytes >= size || dma_chan->stop) {
@@ -454,7 +459,7 @@ static int dma_M2M_write_host_burst(struct dma_chan *dma_chan)
                 "dma: %d:%d: completed SAR 0x%x DAR 0x%x size 0x%x total bytes 0x%x\n",
                 dmac->id, chan, sar, dmac->io[DW_DAR(chan) >> 2],
                 dmac->io[DW_CTRL_HIGH(chan) >> 2] & DW_CTLH_BLOCK_TS_MASK,
-                dma_chan->tbytes);
+                dma_chan->total_bytes);
 
             return 1;
         } else {
@@ -576,7 +581,7 @@ static void dma_P2M_start(struct adsp_gp_dmac *dmac, uint32_t chan, int ssp)
     /* prepare timer context */
     dma_chan->bytes = 0;
     dma_chan->ssp = ssp;
-    dma_chan->tbytes = 0;
+    dma_chan->total_bytes = 0;
 
     qemu_thread_create(&dma_chan->thread, dma_chan->thread_name,
         dma_channel_P2M_work, dma_chan, QEMU_THREAD_DETACHED);
@@ -589,7 +594,7 @@ static void dma_M2P_start(struct adsp_gp_dmac *dmac, uint32_t chan, int ssp)
     /* prepare timer context */
     dma_chan->bytes = 0;
     dma_chan->ssp = ssp;
-    dma_chan->tbytes = 0;
+    dma_chan->total_bytes = 0;
 
     qemu_thread_create(&dma_chan->thread, dma_chan->thread_name,
         dma_channel_M2P_work, dma_chan, QEMU_THREAD_DETACHED);
@@ -601,7 +606,7 @@ static void dma_Mdsp2Mhost_start(struct adsp_gp_dmac *dmac, uint32_t chan)
 
     /* prepare timer context */
     dma_chan->bytes = 0;
-    dma_chan->tbytes = 0;
+    dma_chan->total_bytes = 0;
 
     qemu_thread_create(&dma_chan->thread, dma_chan->thread_name,
         dma_channel_Mdsp2Mhost_work, dma_chan, QEMU_THREAD_DETACHED);
@@ -613,7 +618,7 @@ static void dma_Mhost2Mdsp_start(struct adsp_gp_dmac *dmac, uint32_t chan)
 
     /* prepare timer context */
     dma_chan->bytes = 0;
-    dma_chan->tbytes = 0;
+    dma_chan->total_bytes = 0;
 
     qemu_thread_create(&dma_chan->thread, dma_chan->thread_name,
         dma_channel_Mhost2Mdsp_work, dma_chan, QEMU_THREAD_DETACHED);
@@ -634,8 +639,8 @@ static void dma_M2M_do_transfer(struct dma_chan *dma_chan,
     err = qemu_io_register_shm(dma_chan->thread_name,
         ADSP_IO_SHM_DMA(dmac->id, chan), size, &ptr);
     if (err < 0) {
-        fprintf(stderr, "error: can't create SHM size 0x%x for DMAC %d chan %d\n", size,
-            dmac->id, chan);
+        fprintf(stderr, "error: can't create SHM size 0x%x for DMAC %d chan %d\n",
+            size, dmac->id, chan);
         return;
     }
 
@@ -661,7 +666,7 @@ static void dma_stop_transfer(struct adsp_gp_dmac *dmac, uint32_t chan)
         "dma: %d:%d: stop SAR 0x%x DAR 0x%x size 0x%x total bytes 0x%x\n",
         dmac->id, chan, dmac->io[DW_SAR(chan) >> 2], dmac->io[DW_DAR(chan) >> 2],
         dmac->io[DW_CTRL_HIGH(chan) >> 2] & DW_CTLH_BLOCK_TS_MASK,
-        dma_chan->tbytes);
+        dma_chan->total_bytes);
 }
 
 /* init new DMA mem to mem playback transfer */
@@ -675,7 +680,7 @@ static void dma_start_transfer(struct adsp_gp_dmac *dmac, uint32_t chan)
     /* prepare timer context */
     dma_chan = &dmac->dma_chan[chan];
     dma_chan->stop = 0;
-    dma_chan->tbytes = 0;
+    dma_chan->total_bytes = 0;
 
     /* determine transfer type */
     dar = dmac->io[DW_DAR(chan) >> 2];

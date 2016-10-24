@@ -78,7 +78,10 @@ void dw_dma_init_dev(struct adsp_dev *adsp, MemoryRegion *parent,
             dmac->dma_chan[j].fd = 0;
             dmac->dma_chan[j].chan = j;
             dmac->dma_chan[j].file_idx = 0;
-            sprintf(dmac->dma_chan[j].thread_name, "dmac:%d.%d", i, j);
+            sprintf(dmac->dma_chan[j].thread_name, "dmac-%d-%d", i, j);
+
+            /* local buffer */
+            dmac->dma_chan[j].buffer = g_malloc(DW_DMA_MAX_TFR_WORDS);
         }
     }
 }

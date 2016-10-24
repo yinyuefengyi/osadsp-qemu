@@ -54,7 +54,7 @@ struct adsp_dma_buffer {
     int chan;
     uint32_t *io;
     struct adsp_mem_desc shm_desc;
-    char *name;
+    char name[32];
 };
 
 struct adsp_host {
@@ -92,7 +92,7 @@ struct adsp_host {
 #define ADSP_HOST_MBOX_COUNT    6
 extern const struct adsp_reg_desc adsp_host_mbox_map[ADSP_HOST_MBOX_COUNT];
 
-void adsp_host_init(struct adsp_host *adsp, const struct adsp_desc *board);
+void adsp_host_init(struct adsp_host *adsp, const char *name);
 void adsp_host_do_dma(struct adsp_host *adsp, struct qemu_io_msg *msg);
 void adsp_host_init_mbox(struct adsp_host *adsp, const char *name);
 
