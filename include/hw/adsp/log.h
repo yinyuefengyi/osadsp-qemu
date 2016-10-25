@@ -48,50 +48,50 @@
 #define LOG_ENABLED		1
 
 /* mailbox debug options - LOG_MBOX must be 1 to enable other options */
-#define LOG_MBOX		1
-#define LOG_MBOX_OUTBOX	1
-#define LOG_MBOX_INBOX	1
-#define LOG_MBOX_DEBUG	0
-#define LOG_MBOX_EXCEPTION	1
-#define LOG_MBOX_TRACE	1
-#define LOG_MBOX_STREAM	0
+#define LOG_MBOX		0
+#define LOG_MBOX_OUTBOX		0
+#define LOG_MBOX_INBOX		0
+#define LOG_MBOX_DEBUG		0
+#define LOG_MBOX_EXCEPTION	0
+#define LOG_MBOX_TRACE		1
+#define LOG_MBOX_STREAM		0
 
 /* shim debug options - LOG_SHIM must be 1 to enable other options */
-#define LOG_SHIM		1
-#define LOG_SHIM_CSR		1
-#define LOG_SHIM_PISR		1
-#define LOG_SHIM_PIMR		1
-#define LOG_SHIM_ISRX		1
-#define LOG_SHIM_ISRD		1
-#define LOG_SHIM_IMRX		1
-#define LOG_SHIM_IMRD		1
-#define LOG_SHIM_IPCXL	1
-#define LOG_SHIM_IPCXH	1
-#define LOG_SHIM_IPCDL	1
-#define LOG_SHIM_IPCDH	1
-#define LOG_SHIM_ISRSC	1
-#define LOG_SHIM_ISRLPESC	1
-#define LOG_SHIM_IMRSCL	1
-#define LOG_SHIM_IMRSCH	1
-#define LOG_SHIM_IMRLPESC	1
-#define LOG_SHIM_IPCSCL	1
-#define LOG_SHIM_IPCSCH	1
-#define LOG_SHIM_IPCLPESCL	1
-#define LOG_SHIM_IPCLPESCH	1
-#define LOG_SHIM_CLKCTL	1
-#define LOG_SHIM_FR_LAT_REQ	1
-#define LOG_SHIM_MISC		1
-#define LOG_SHIM_EXTTL	1
-#define LOG_SHIM_EXTTH	1
-#define LOG_SHIM_EXTST	0
+#define LOG_SHIM		0
+#define LOG_SHIM_CSR		0
+#define LOG_SHIM_PISR		0
+#define LOG_SHIM_PIMR		0
+#define LOG_SHIM_ISRX		0
+#define LOG_SHIM_ISRD		0
+#define LOG_SHIM_IMRX		0
+#define LOG_SHIM_IMRD		0
+#define LOG_SHIM_IPCXL		0
+#define LOG_SHIM_IPCXH		0
+#define LOG_SHIM_IPCDL		0
+#define LOG_SHIM_IPCDH		0
+#define LOG_SHIM_ISRSC		0
+#define LOG_SHIM_ISRLPESC	0
+#define LOG_SHIM_IMRSCL		0
+#define LOG_SHIM_IMRSCH		0
+#define LOG_SHIM_IMRLPESC	0
+#define LOG_SHIM_IPCSCL		0
+#define LOG_SHIM_IPCSCH		0
+#define LOG_SHIM_IPCLPESCL	0
+#define LOG_SHIM_IPCLPESCH	0
+#define LOG_SHIM_CLKCTL		0
+#define LOG_SHIM_FR_LAT_REQ	0
+#define LOG_SHIM_MISC		0
+#define LOG_SHIM_EXTTL		0
+#define LOG_SHIM_EXTTH		0
+#define LOG_SHIM_EXTST		0
 
 /* IRQ debug options */
-#define LOG_IRQ_BUSY		1
-#define LOG_IRQ_DONE		1
-#define LOG_IRQ_ACTIVE	1
+#define LOG_IRQ_BUSY		0
+#define LOG_IRQ_DONE		0
+#define LOG_IRQ_ACTIVE		0
 
 /* CPU status debug options */
-#define LOG_CPU_RESET		1
+#define LOG_CPU_RESET		0
 
 /* CPU status debug options */
 #define LOG_DMA		1
@@ -101,10 +101,10 @@
 #define LOG_DMA_IRQ		1
 
 /* MSG Q logging */
-#define LOG_MSGQ		1
+#define LOG_MSGQ		0
 
 /* SSP Logging */
-#define LOG_SSP 1
+#define LOG_SSP 		0
 
 struct adsp_log {
 	GMutex mutex;
