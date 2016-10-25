@@ -649,9 +649,9 @@ static void dma_M2M_do_transfer(struct dma_chan *dma_chan,
 
     /* allocate new timer for DMAC channel and direction */
     if (direction == QEMU_IO_DMA_DIR_READ)
-        dma_Mdsp2Mhost_start(dmac, chan);
-    else
         dma_Mhost2Mdsp_start(dmac, chan);
+    else
+        dma_Mdsp2Mhost_start(dmac, chan);
 }
 
 /* stop DMA transaction */
