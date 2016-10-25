@@ -121,7 +121,7 @@ extern const struct adsp_reg_desc adsp_hsw_shim_map[HSW_SHIM_REGS];
 extern const struct adsp_reg_desc adsp_bxt_shim_map[BXT_SHIM_REGS];
 
 
-#if LOG_SHIM
+#if LOG_ENABLED
 
 static inline void log_print(struct adsp_log *log, const char *fmt, ...)
 {
