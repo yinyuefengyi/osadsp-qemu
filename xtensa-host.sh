@@ -66,15 +66,15 @@ rm -fr /dev/mqueue/qemu-io-*
 
 # start the DSP virtualization - GDB disabled
 ./xtensa-softmmu/qemu-system-xtensa -cpu $CPU -M $ADSP -nographic -S
-#./xtensa-softmmu/qemu-system-xtensa -cpu hifi2_ep -M adsp_byt -nographic -d guest_errors,mmu,int,in_asm -kernel ../reef/src/arch/xtensa/reef.bin
-#./xtensa-softmmu/qemu-system-xtensa -cpu hifi2_ep -M adsp_byt -nographic -d guest_errors,mmu -kernel ~/source/reef/image.bin
-#./xtensa-softmmu/qemu-system-xtensa -cpu hifi2_ep -M adsp_byt -nographic -kernel ../reef/src/arch/xtensa/reef.bin
+#./xtensa-softmmu/qemu-system-xtensa -cpu $CPU -M $ADSP -nographic -d guest_errors,mmu,int,in_asm -kernel ../reef/src/arch/xtensa/reef.bin
+#./xtensa-softmmu/qemu-system-xtensa -cpu $CPU -M $ADSP -nographic -d guest_errors,mmu -kernel ~/source/reef/image.bin
+#./xtensa-softmmu/qemu-system-xtensa -cpu $CPU -M $ADSP -nographic -kernel ../reef/src/arch/xtensa/reef.bin
 
 # start the DSP virtualization - GDB enabled with CPU running
-#./xtensa-softmmu/qemu-system-xtensa -s -cpu hifi2_ep -M adsp_byt -nographic
+#./xtensa-softmmu/qemu-system-xtensa -s -cpu $CPU -M $ADSP -nographic
 
 # start the DSP virtualization - GDB enabled with CPU stalled
-#./xtensa-softmmu/qemu-system-xtensa -s -S -cpu hifi2_ep -M adsp_byt -nographic
+#./xtensa-softmmu/qemu-system-xtensa -s -S -cpu $CPU -M $ADSP -nographic
 
 # VM can execute flat binary files at startup using -kernel cmd line option
 # -kernel ../reef/src/arch/xtensa/reef.bin
